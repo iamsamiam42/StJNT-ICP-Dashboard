@@ -81,7 +81,9 @@ body{font-family:var(--font);color:var(--ink);min-height:100dvh;overflow-x:hidde
   padding:8px 10px;font-size:14px;font-family:var(--font);background:var(--bg);
   color:var(--ink);outline:none;appearance:none;-webkit-appearance:none;transition:border-color .15s}
 .pf select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+  background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;
+  cursor:pointer}
+.pf select:focus{border-color:var(--green);background:white}
 .pf select:focus,.pf input:focus{border-color:var(--green);background:white}
 
 /* Skill cards */
@@ -252,9 +254,18 @@ body{font-family:var(--font);color:var(--ink);min-height:100dvh;overflow-x:hidde
           style="background:var(--light-grey);color:var(--muted)">
       </div>
       <div class="pf">
-        <label>Base</label>
-        <input type="text" id="prof-base" value="Darwin Station" readonly
-          style="background:var(--light-grey);color:var(--muted)">
+        <label>Base / Location</label>
+        <select id="prof-base" onchange="saveProfile()"
+          style="background:var(--bg);color:var(--ink)">
+          <option value="Darwin Station">Darwin Station</option>
+          <option value="Royal Darwin Hospital Theatre">Royal Darwin Hospital Theatre</option>
+          <option value="Palmerston">Palmerston</option>
+          <option value="Katherine">Katherine</option>
+          <option value="Alice Springs">Alice Springs</option>
+          <option value="Nhulunbuy">Nhulunbuy</option>
+          <option value="Tennant Creek">Tennant Creek</option>
+          <option value="Remote / Other">Remote / Other</option>
+        </select>
       </div>
     </div>
   </div>
@@ -697,7 +708,8 @@ function saveProfile(){
   const sel=document.getElementById('prof-name');
   const emp=sel.value;
   const name=sel.options[sel.selectedIndex].text.split(' (')[0];
-  DB.profile={name,emp};
+  const base=document.getElementById('prof-base').value||'Darwin Station';
+  DB.profile={name,emp,base};
   save();
   document.getElementById('prof-emp').value=emp;
   document.getElementById('hd-count').textContent=DB.entries.length+' entries';
@@ -709,6 +721,12 @@ function saveProfile(){
     const sel=document.getElementById('prof-name');
     sel.value=p.emp;
     document.getElementById('prof-emp').value=p.emp||'';
+  }
+  if(p.base){
+    const baseSel=document.getElementById('prof-base');
+    // Set dropdown to saved value if it exists as an option
+    const opts=Array.from(baseSel.options).map(o=>o.value);
+    if(opts.includes(p.base)) baseSel.value=p.base;
   }
   updateHeaderCount();
 })();
@@ -744,7 +762,7 @@ function saveEntry(sk){
   const entry={
     id:'e'+Date.now(), skill:sk, date, type:type||sk, setting,
     competency:comp, supervisor, notes,
-    empId:prof.emp, name:prof.name, base:'Darwin Station',
+    empId:prof.emp, name:prof.name, base:prof.base||'Darwin Station',
     loggedAt:new Date().toISOString()
   };
   DB.entries.unshift(entry);
@@ -870,7 +888,7 @@ async function syncNow(){
 }
 
 async function silentSync(){
-  if(!DB.queue.length||!WEBHOOK_URL||WEBHOOK_URL.includes('PASTE')||WEBHOOK_URL.includes('GOOGLE')) return;
+  if(!DB.queue.length||!WEBHOOK_URL||WEBHOOK_URL.includes('PASTE')) return;
   try{ await syncNow(); }catch(e){}
 }
 
