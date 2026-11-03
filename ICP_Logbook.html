@@ -232,20 +232,21 @@ body{font-family:var(--font);color:var(--ink);min-height:100dvh;overflow-x:hidde
         <select id="prof-name" onchange="saveProfile()">
           <option value="">Select your name…</option>
           <option value="3801">Walsh, Amelia (3801)</option>
-<option value="3802">Kick, Andrew (3802)</option>
-<option value="3803">Brown, Brad (3803)</option>
-<option value="3804">Bromley, Dan (3804)</option>
-<option value="3805">Robertson, Dan (3805)</option>
-<option value="3806">Rowland, James (3806)</option>
-<option value="3807">Squire, Kelsey (3807)</option>
-<option value="3808">Bigwood, Nick (3808)</option>
-<option value="3809">Pulleine, Paul (3809)</option>
-<option value="3810">Wood, Tony (3810)</option>
-<option value="3811">Purse, Warren (3811)</option>
-<option value="3812">O'Toole, Dave (3812)</option>
-<option value="3813">Ferguson, Mark (3813)</option>
-<option value="3814">McKay, Mick (3814)</option>
-<option value="3815">Reeves, Paul (3815)</option>
+          <option value="3802">Kick, Andrew (3802)</option>
+          <option value="3803">Brown, Brad (3803)</option>
+          <option value="3804">Bromley, Dan (3804)</option>
+          <option value="3805">Robertson, Dan (3805)</option>
+          <option value="3806">Rowland, James (3806)</option>
+          <option value="3807">Squire, Kelsey (3807)</option>
+          <option value="3808">Bigwood, Nick (3808)</option>
+          <option value="3812">O'Toole, Dave (3812)</option>
+          <option value="3815">Reeves, Paul (3815)</option>
+          <option value="3816">Houben, Justin (3816)</option>
+          <option value="3817">Everingham, Josh (3817)</option>
+          <option value="3818">Muir, Rebecca (3818)</option>
+          <option value="3819">O'Gallagher, Fergus (3819)</option>
+          <option value="3820">Clarke, David (3820)</option>
+          <option value="3821">Denmeade, Dylan (3821)</option>
         </select>
       </div>
       <div class="pf">
@@ -300,6 +301,8 @@ body{font-family:var(--font);color:var(--ink);min-height:100dvh;overflow-x:hidde
         <input type="text" id="RSI-supervisor" placeholder="Name and role"></div>
       <div class="fg"><label>Notes (optional)</label>
         <textarea id="RSI-notes" placeholder="Grade of view, technique details, patient factors…"></textarea></div>
+      <div class="fg"><label>Case details (optional)</label>
+        <textarea id="RSI-case" rows="4" placeholder="Anything specific to this case — patient factors, difficulties, what you would do differently, learning points…"></textarea></div>
       <button class="save-btn" data-skill="RSI" style="background:var(--sk-color)">
         💾 Save RSI Entry
       </button>
@@ -334,6 +337,8 @@ body{font-family:var(--font);color:var(--ink);min-height:100dvh;overflow-x:hidde
         <input type="text" id="ETT-supervisor" placeholder="Name and role"></div>
       <div class="fg"><label>Notes (optional)</label>
         <textarea id="ETT-notes" placeholder="Grade of view, technique details, patient factors…"></textarea></div>
+      <div class="fg"><label>Case details (optional)</label>
+        <textarea id="ETT-case" rows="4" placeholder="Anything specific to this case — patient factors, difficulties, what you would do differently, learning points…"></textarea></div>
       <button class="save-btn" data-skill="ETT" style="background:var(--sk-color)">
         💾 Save ETT Entry
       </button>
@@ -368,6 +373,8 @@ body{font-family:var(--font);color:var(--ink);min-height:100dvh;overflow-x:hidde
         <input type="text" id="SGA-supervisor" placeholder="Name and role"></div>
       <div class="fg"><label>Notes (optional)</label>
         <textarea id="SGA-notes" placeholder="Grade of view, technique details, patient factors…"></textarea></div>
+      <div class="fg"><label>Case details (optional)</label>
+        <textarea id="SGA-case" rows="4" placeholder="Anything specific to this case — patient factors, difficulties, what you would do differently, learning points…"></textarea></div>
       <button class="save-btn" data-skill="SGA" style="background:var(--sk-color)">
         💾 Save SGA Entry
       </button>
@@ -402,6 +409,8 @@ body{font-family:var(--font);color:var(--ink);min-height:100dvh;overflow-x:hidde
         <input type="text" id="BVM-supervisor" placeholder="Name and role"></div>
       <div class="fg"><label>Notes (optional)</label>
         <textarea id="BVM-notes" placeholder="Grade of view, technique details, patient factors…"></textarea></div>
+      <div class="fg"><label>Case details (optional)</label>
+        <textarea id="BVM-case" rows="4" placeholder="Anything specific to this case — patient factors, difficulties, what you would do differently, learning points…"></textarea></div>
       <button class="save-btn" data-skill="BVM" style="background:var(--sk-color)">
         💾 Save BVM Entry
       </button>
@@ -436,6 +445,8 @@ body{font-family:var(--font);color:var(--ink);min-height:100dvh;overflow-x:hidde
         <input type="text" id="FT-supervisor" placeholder="Name and role"></div>
       <div class="fg"><label>Notes (optional)</label>
         <textarea id="FT-notes" placeholder="Grade of view, technique details, patient factors…"></textarea></div>
+      <div class="fg"><label>Case details (optional)</label>
+        <textarea id="FT-case" rows="4" placeholder="Anything specific to this case — patient factors, difficulties, what you would do differently, learning points…"></textarea></div>
       <button class="save-btn" data-skill="FT" style="background:var(--sk-color)">
         💾 Save FT Entry
       </button>
@@ -470,42 +481,46 @@ body{font-family:var(--font);color:var(--ink);min-height:100dvh;overflow-x:hidde
         <input type="text" id="FONA-supervisor" placeholder="Name and role"></div>
       <div class="fg"><label>Notes (optional)</label>
         <textarea id="FONA-notes" placeholder="Grade of view, technique details, patient factors…"></textarea></div>
+      <div class="fg"><label>Case details (optional)</label>
+        <textarea id="FONA-case" rows="4" placeholder="Anything specific to this case — patient factors, difficulties, what you would do differently, learning points…"></textarea></div>
       <button class="save-btn" data-skill="FONA" style="background:var(--sk-color)">
         💾 Save FONA Entry
       </button>
     </div>
   </div>
 
-  <div class="skill-card" id="fc-IVIG" style="--sk-color:#0891B2;--sk-bg:#CFFAFE">
+  <div class="skill-card" id="fc-IVIO" style="--sk-color:#0891B2;--sk-bg:#CFFAFE">
     <div class="sk-header">
       <span class="sk-icon">🩸</span>
-      <div><div class="sk-title">IV / IO Access</div><div class="sk-code">IVIG</div></div>
+      <div><div class="sk-title">IV / IO Access</div><div class="sk-code">IVIO</div></div>
     </div>
     <div class="sk-body">
-      <div class="fg"><label>Date</label><input type="date" id="IVIG-date" class="sk-date"></div>
+      <div class="fg"><label>Date</label><input type="date" id="IVIO-date" class="sk-date"></div>
       <div class="fg"><label>Setting</label>
         <div class="tbtn-row">
-          <div class="tbtn" data-f="IVIG" data-s="Real Patient"><span>🏥</span>Real Patient</div>
-          <div class="tbtn" data-f="IVIG" data-s="Simulation"><span>🎭</span>Simulation</div>
+          <div class="tbtn" data-f="IVIO" data-s="Real Patient"><span>🏥</span>Real Patient</div>
+          <div class="tbtn" data-f="IVIO" data-s="Simulation"><span>🎭</span>Simulation</div>
         </div>
       </div>
       <div class="fg"><label>Specific Technique</label>
-        <select id="IVIG-type"><option value="">Select…</option><option>IV – 18g peripheral</option><option>IV – 16g peripheral</option><option>IV – 14g peripheral</option><option>IV – 20g peripheral</option><option>IO – Adult (EZ-IO tibia)</option><option>IO – Adult (EZ-IO humerus)</option><option>IO – Paediatric (EZ-IO)</option></select>
-        <input type="text" id="IVIG-custom" placeholder="Or type custom technique…" style="margin-top:6px">
+        <select id="IVIO-type"><option value="">Select…</option><option>IV – 18g peripheral</option><option>IV – 16g peripheral</option><option>IV – 14g peripheral</option><option>IV – 20g peripheral</option><option>IO – Adult (EZ-IO tibia)</option><option>IO – Adult (EZ-IO humerus)</option><option>IO – Paediatric (EZ-IO)</option></select>
+        <input type="text" id="IVIO-custom" placeholder="Or type custom technique…" style="margin-top:6px">
       </div>
       <div class="fg"><label>Competency</label>
         <div class="tbtn-row">
-          <div class="tbtn comp-btn" data-f="IVIG" data-c="Yes">✅ Yes</div>
-          <div class="tbtn comp-btn" data-f="IVIG" data-c="Partial">⚠️ Partial</div>
-          <div class="tbtn comp-btn" data-f="IVIG" data-c="No">❌ No</div>
+          <div class="tbtn comp-btn" data-f="IVIO" data-c="Yes">✅ Yes</div>
+          <div class="tbtn comp-btn" data-f="IVIO" data-c="Partial">⚠️ Partial</div>
+          <div class="tbtn comp-btn" data-f="IVIO" data-c="No">❌ No</div>
         </div>
       </div>
       <div class="fg"><label>Supervisor / Educator</label>
-        <input type="text" id="IVIG-supervisor" placeholder="Name and role"></div>
+        <input type="text" id="IVIO-supervisor" placeholder="Name and role"></div>
       <div class="fg"><label>Notes (optional)</label>
-        <textarea id="IVIG-notes" placeholder="Grade of view, technique details, patient factors…"></textarea></div>
-      <button class="save-btn" data-skill="IVIG" style="background:var(--sk-color)">
-        💾 Save IVIG Entry
+        <textarea id="IVIO-notes" placeholder="Grade of view, technique details, patient factors…"></textarea></div>
+      <div class="fg"><label>Case details (optional)</label>
+        <textarea id="IVIO-case" rows="4" placeholder="Anything specific to this case — patient factors, difficulties, what you would do differently, learning points…"></textarea></div>
+      <button class="save-btn" data-skill="IVIO" style="background:var(--sk-color)">
+        💾 Save IVIO Entry
       </button>
     </div>
   </div>
@@ -538,6 +553,8 @@ body{font-family:var(--font);color:var(--ink);min-height:100dvh;overflow-x:hidde
         <input type="text" id="Blood-supervisor" placeholder="Name and role"></div>
       <div class="fg"><label>Notes (optional)</label>
         <textarea id="Blood-notes" placeholder="Grade of view, technique details, patient factors…"></textarea></div>
+      <div class="fg"><label>Case details (optional)</label>
+        <textarea id="Blood-case" rows="4" placeholder="Anything specific to this case — patient factors, difficulties, what you would do differently, learning points…"></textarea></div>
       <button class="save-btn" data-skill="Blood" style="background:var(--sk-color)">
         💾 Save Blood Entry
       </button>
@@ -572,8 +589,54 @@ body{font-family:var(--font);color:var(--ink);min-height:100dvh;overflow-x:hidde
         <input type="text" id="Other-supervisor" placeholder="Name and role"></div>
       <div class="fg"><label>Notes (optional)</label>
         <textarea id="Other-notes" placeholder="Grade of view, technique details, patient factors…"></textarea></div>
+      <div class="fg"><label>Case details (optional)</label>
+        <textarea id="Other-case" rows="4" placeholder="Anything specific to this case — patient factors, difficulties, what you would do differently, learning points…"></textarea></div>
       <button class="save-btn" data-skill="Other" style="background:var(--sk-color)">
         💾 Save Other Entry
+      </button>
+    </div>
+  </div>
+
+  <div class="skill-card" id="fc-REFL" style="--sk-color:#0E7490;--sk-bg:#CFFAFE">
+    <div class="sk-header">
+      <span class="sk-icon">📄</span>
+      <div><div class="sk-title">W, SW, NW Reflection</div><div class="sk-code">REFL · training milestone</div></div>
+    </div>
+    <div class="sk-body">
+      <div class="fg"><label>Date completed</label><input type="date" id="REFL-date" class="sk-date"></div>
+      <div class="fg"><label>Reflection title</label>
+        <input type="hidden" id="REFL-type">
+        <input type="text" id="REFL-custom" placeholder="Title or topic of this reflection"></div>
+      <div class="fg"><label>Reviewed by (optional)</label>
+        <input type="text" id="REFL-supervisor" placeholder="Name of reviewer"></div>
+      <div class="fg"><label>Notes (optional)</label>
+        <textarea id="REFL-notes" placeholder="Anything worth noting…"></textarea></div>
+      <div class="fg"><label>Case details (optional)</label>
+        <textarea id="REFL-case" rows="4" placeholder="Anything specific to this one…"></textarea></div>
+      <button class="save-btn" data-skill="REFL" style="background:var(--sk-color)">
+        💾 Save REFL Entry
+      </button>
+    </div>
+  </div>
+
+  <div class="skill-card" id="fc-SMR" style="--sk-color:#6D28D9;--sk-bg:#EDE9FE">
+    <div class="sk-header">
+      <span class="sk-icon">📖</span>
+      <div><div class="sk-title">Structured Mentor Report</div><div class="sk-code">SMR · training milestone</div></div>
+    </div>
+    <div class="sk-body">
+      <div class="fg"><label>Date completed</label><input type="date" id="SMR-date" class="sk-date"></div>
+      <div class="fg"><label>Report title / period</label>
+        <input type="hidden" id="SMR-type">
+        <input type="text" id="SMR-custom" placeholder="e.g. SMR 1 – first three months"></div>
+      <div class="fg"><label>Mentor</label>
+        <input type="text" id="SMR-supervisor" placeholder="Mentor name"></div>
+      <div class="fg"><label>Notes (optional)</label>
+        <textarea id="SMR-notes" placeholder="Anything worth noting…"></textarea></div>
+      <div class="fg"><label>Case details (optional)</label>
+        <textarea id="SMR-case" rows="4" placeholder="Anything specific to this one…"></textarea></div>
+      <button class="save-btn" data-skill="SMR" style="background:var(--sk-color)">
+        💾 Save SMR Entry
       </button>
     </div>
   </div>
@@ -584,7 +647,8 @@ body{font-family:var(--font);color:var(--ink);min-height:100dvh;overflow-x:hidde
 <section class="page" id="page-history">
   <div class="filter-row" id="filter-row">
     <div class="chip active" data-f="all">All</div>
-    <div class="chip" data-f="RSI">💉 RSI</div><div class="chip" data-f="ETT">🔬 ETT</div><div class="chip" data-f="SGA">😮 SGA</div><div class="chip" data-f="BVM">🫁 BVM</div><div class="chip" data-f="FT">✂️ FT</div><div class="chip" data-f="FONA">🩺 FONA</div><div class="chip" data-f="IVIG">🩸 IVIG</div><div class="chip" data-f="Blood">🔴 Blood</div><div class="chip" data-f="Other">⭐ Other</div>
+    <div class="chip" data-f="RSI">💉 RSI</div><div class="chip" data-f="ETT">🔬 ETT</div><div class="chip" data-f="SGA">😮 SGA</div><div class="chip" data-f="BVM">🫁 BVM</div><div class="chip" data-f="FT">✂️ FT</div><div class="chip" data-f="FONA">🩺 FONA</div><div class="chip" data-f="IVIO">🩸 IVIO</div><div class="chip" data-f="Blood">🔴 Blood</div><div class="chip" data-f="Other">⭐ Other</div>
+    <div class="chip" data-f="REFL">📄 W/SW/NW</div><div class="chip" data-f="SMR">📖 SMR</div>
     <div class="chip" data-f="Real Patient">🏥 Real</div>
     <div class="chip" data-f="Simulation">🎭 Sim</div>
     <div class="chip" data-f="Yes">✅ Competent</div>
@@ -649,11 +713,11 @@ Queued: 0 entries</div>
 
 <script>
 // ── Config injected at build time ─────────────────────────
-const SKILLS = [{"key": "RSI", "label": "Rapid Sequence Intubation", "icon": "\ud83d\udc89", "color": "#B45309", "bg": "#FEF3C7"}, {"key": "ETT", "label": "Endotracheal Intubation", "icon": "\ud83d\udd2c", "color": "#6D28D9", "bg": "#EDE9FE"}, {"key": "SGA", "label": "Supraglottic Airway", "icon": "\ud83d\ude2e", "color": "#0E7490", "bg": "#CFFAFE"}, {"key": "BVM", "label": "Bag-Valve-Mask Ventilation", "icon": "\ud83e\udec1", "color": "#8B0000", "bg": "#F9E8E8"}, {"key": "FT", "label": "Finger Thoracostomy", "icon": "\u2702\ufe0f", "color": "#166534", "bg": "#DCFCE7"}, {"key": "FONA", "label": "Front of Neck Airway", "icon": "\ud83e\ude7a", "color": "#C05621", "bg": "#FED7AA"}, {"key": "IVIG", "label": "IV / IO Access", "icon": "\ud83e\ude78", "color": "#0891B2", "bg": "#CFFAFE"}, {"key": "Blood", "label": "Blood Products / TXA / Haemostatics", "icon": "\ud83d\udd34", "color": "#991B1B", "bg": "#FEE2E2"}, {"key": "Other", "label": "Other Endorsed Skill", "icon": "\u2b50", "color": "#374151", "bg": "#F3F4F6"}];
+const SKILLS = [{"key": "RSI", "label": "Rapid Sequence Intubation", "icon": "\ud83d\udc89", "color": "#B45309", "bg": "#FEF3C7"}, {"key": "ETT", "label": "Endotracheal Intubation", "icon": "\ud83d\udd2c", "color": "#6D28D9", "bg": "#EDE9FE"}, {"key": "SGA", "label": "Supraglottic Airway", "icon": "\ud83d\ude2e", "color": "#0E7490", "bg": "#CFFAFE"}, {"key": "BVM", "label": "Bag-Valve-Mask Ventilation", "icon": "\ud83e\udec1", "color": "#8B0000", "bg": "#F9E8E8"}, {"key": "FT", "label": "Finger Thoracostomy", "icon": "\u2702\ufe0f", "color": "#166534", "bg": "#DCFCE7"}, {"key": "FONA", "label": "Front of Neck Airway", "icon": "\ud83e\ude7a", "color": "#C05621", "bg": "#FED7AA"}, {"key": "IVIO", "label": "IV / IO Access", "icon": "\ud83e\ude78", "color": "#0891B2", "bg": "#CFFAFE"}, {"key": "Blood", "label": "Blood Products / TXA / Haemostatics", "icon": "\ud83d\udd34", "color": "#991B1B", "bg": "#FEE2E2"}, {"key": "Other", "label": "Other Endorsed Skill", "icon": "\u2b50", "color": "#374151", "bg": "#F3F4F6"}, {"key": "REFL", "label": "W, SW, NW Reflection", "icon": "📄", "color": "#0E7490", "bg": "#CFFAFE"}, {"key": "SMR", "label": "Structured Mentor Report", "icon": "📖", "color": "#6D28D9", "bg": "#EDE9FE"}];
 const CURRENCY_DAYS = 90;
-const WEBHOOK_URL = 'PASTE_YOUR_GOOGLE_SCRIPT_URL_HERE';  // See setup guide — paste your Google Apps Script Web App URL here
+const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzbRS9MG5xshgJFx2bMg9qXYJ0OkYzRReOW0txwLFChYhWug5S0vv45BrQ7b5-gyvwq6Q/exec';  // See setup guide — paste your Google Apps Script Web App URL here
 
-const ICP_MAP = {"3801":"Walsh, Amelia","3802":"Kick, Andrew","3803":"Brown, Brad","3804":"Bromley, Dan","3805":"Robertson, Dan","3806":"Rowland, James","3807":"Squire, Kelsey","3808":"Bigwood, Nick","3809":"Pulleine, Paul","3810":"Wood, Tony","3811":"Purse, Warren","3812":"O'Toole, Dave","3813":"Ferguson, Mark","3814":"McKay, Mick","3815":"Reeves, Paul"};
+const ICP_MAP = {"3801": "Walsh, Amelia", "3802": "Kick, Andrew", "3803": "Brown, Brad", "3804": "Bromley, Dan", "3805": "Robertson, Dan", "3806": "Rowland, James", "3807": "Squire, Kelsey", "3808": "Bigwood, Nick", "3812": "O'Toole, Dave", "3815": "Reeves, Paul", "3816": "Houben, Justin", "3817": "Everingham, Josh", "3818": "Muir, Rebecca", "3819": "O'Gallagher, Fergus", "3820": "Clarke, David", "3821": "Denmeade, Dylan"};
 
 // ── Storage ───────────────────────────────────────────────
 const KEY = 'icp_logbook_v4';
@@ -674,6 +738,8 @@ function save(){ localStorage.setItem(KEY, JSON.stringify(DB)); }
 // ── Form state ────────────────────────────────────────────
 const FS = {};
 SKILLS.forEach(s=>{ FS[s.key]={setting:'',comp:''}; });
+const MILESTONE_KEYS=['REFL','SMR'];
+MILESTONE_KEYS.forEach(k=>{ FS[k]={setting:'Milestone',comp:'Yes'}; });
 
 // Setting buttons
 document.querySelectorAll('.tbtn[data-s]').forEach(b=>{
@@ -731,6 +797,40 @@ function saveProfile(){
   updateHeaderCount();
 })();
 
+
+// ── Staff list from the sheet (ICP_Config Section B) ─────────
+// Falls back to the built-in list if offline.
+(async function loadStaff(){
+  if(!WEBHOOK_URL||WEBHOOK_URL.includes('PASTE')) return;
+  try{
+    const r=await fetch(`${WEBHOOK_URL}?action=getConfig&t=${Date.now()}`);
+    const j=await r.json();
+    if(j.status!=='success'||!j.staff||!j.staff.length) return;
+    const staff=j.staff.filter(x=>x.status!=='Inactive');
+    const sel=document.getElementById('prof-name');
+    const cur=(DB.profile||{}).emp||sel.value;
+    sel.innerHTML='<option value="">Select your name…</option>'+
+      staff.map(x=>`<option value="${x.emp}">${x.name} (${x.emp})</option>`).join('');
+    staff.forEach(x=>{ICP_MAP[x.emp]=x.name;});
+    if(j.bases&&j.bases.length){
+      const bs=document.getElementById('prof-base'), bcur=(DB.profile||{}).base||bs.value;
+      bs.innerHTML=j.bases.map(b=>`<option value="${b}">${b}</option>`).join('');
+      if(j.bases.includes(bcur)) bs.value=bcur;
+    }
+    if(cur&&staff.some(x=>x.emp===cur)) sel.value=cur;
+    else if(cur){ DB.profile={}; save(); document.getElementById('prof-emp').value=''; }
+    localStorage.setItem('icp_staff_cache',JSON.stringify(staff));
+  }catch(e){
+    try{
+      const staff=JSON.parse(localStorage.getItem('icp_staff_cache')||'[]');
+      if(!staff.length) return;
+      const sel=document.getElementById('prof-name'); const cur=sel.value;
+      sel.innerHTML='<option value="">Select your name…</option>'+staff.map(x=>`<option value="${x.emp}">${x.name} (${x.emp})</option>`).join('');
+      sel.value=cur;
+    }catch(_){}
+  }
+})();
+
 // ── Nav ───────────────────────────────────────────────────
 document.querySelectorAll('.nav-tab').forEach(t=>{
   t.addEventListener('click',()=>{
@@ -756,12 +856,13 @@ function saveEntry(sk){
   const setting=FS[sk].setting||'Real Patient';
   const supervisor=document.getElementById(`${sk}-supervisor`).value.trim();
   const notes=document.getElementById(`${sk}-notes`).value.trim();
+  const caseDetails=document.getElementById(`${sk}-case`).value.trim();
   if(!date){ showToast('Please enter a date'); return; }
   if(!comp){ showToast('Please select competency'); return; }
 
   const entry={
     id:'e'+Date.now(), skill:sk, date, type:type||sk, setting,
-    competency:comp, supervisor, notes,
+    competency:comp, supervisor, notes, caseDetails,
     empId:prof.emp, name:prof.name, base:prof.base||'Darwin Station',
     loggedAt:new Date().toISOString()
   };
@@ -775,7 +876,8 @@ function saveEntry(sk){
   document.getElementById(`${sk}-custom`).value='';
   document.getElementById(`${sk}-supervisor`).value='';
   document.getElementById(`${sk}-notes`).value='';
-  FS[sk]={setting:'',comp:''};
+  document.getElementById(`${sk}-case`).value='';
+  FS[sk]=MILESTONE_KEYS.includes(sk)?{setting:'Milestone',comp:'Yes'}:{setting:'',comp:''};
   document.querySelectorAll(`.tbtn[data-f="${sk}"]`).forEach(b=>{
     b.className=b.classList.contains('comp-btn')?'tbtn comp-btn':'tbtn';
   });
@@ -828,9 +930,10 @@ function renderHistory(f){
           <button class="del-btn" onclick="delEntry('${e.id}')">🗑</button>
         </div>
       </div>
-      ${(e.supervisor||e.notes)?`<div class="he-body">
+      ${(e.supervisor||e.notes||e.caseDetails)?`<div class="he-body">
         ${e.supervisor?`<div class="ef"><span class="ef-l">Supervisor</span><span class="ef-v">${e.supervisor}</span></div>`:''}
-        ${e.notes?`<div class="ef"><span class="ef-l">Notes</span><span class="ef-v">${e.notes}</span></div>`:''}</div>`:''}
+        ${e.notes?`<div class="ef"><span class="ef-l">Notes</span><span class="ef-v">${e.notes}</span></div>`:''}
+        ${e.caseDetails?`<div class="ef"><span class="ef-l">Case details</span><span class="ef-v">${e.caseDetails}</span></div>`:''}</div>`:''}
     </div>`;
   }).join('');
 }
@@ -867,6 +970,7 @@ async function syncNow(){
         competency:  entry.competency||'',
         supervisor:  entry.supervisor||'',
         notes:       entry.notes||'',
+        caseDetails: entry.caseDetails||'',
         loggedAt:    entry.loggedAt||new Date().toISOString()
       });
       const r = await fetch(`${WEBHOOK_URL}?${params.toString()}`, {
@@ -911,10 +1015,10 @@ Total logged: ${DB.entries.length}`;
 // ── Export CSV ────────────────────────────────────────────
 function exportCSV(){
   const prof=DB.profile||{};
-  const hdrs=['Entry ID','Emp ID','Name','Base','Date','Skill','Type','Setting','Competency','Supervisor','Notes','Logged At'];
+  const hdrs=['Entry ID','Emp ID','Name','Base','Date','Skill','Type','Setting','Competency','Supervisor','Notes','Case Details','Logged At'];
   const rows=DB.entries.map(e=>[e.id,e.empId||prof.emp,e.name||prof.name,
     e.base||'Darwin Station',e.date,e.skill,e.type,e.setting,
-    e.competency,e.supervisor||'',e.notes||'',e.loggedAt].map(csvEsc));
+    e.competency,e.supervisor||'',e.notes||'',e.caseDetails||'',e.loggedAt].map(csvEsc));
   const csv=[hdrs,...rows].map(r=>r.join(',')).join('\n');
   dlBlob(new Blob(['\uFEFF'+csv],{type:'text/csv'}),
     `ICP_Currency_${(prof.name||'Unknown').replace(/[^a-zA-Z]/g,'_')}_${new Date().toISOString().split('T')[0]}.csv`);

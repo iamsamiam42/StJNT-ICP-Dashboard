@@ -351,9 +351,46 @@ body{font-family:var(--font);min-height:100vh}
 
 /* ── Responsive table pill wrap ─────────────────────── */
 .skill-pips{display:flex;gap:4px;flex-wrap:wrap}
+
+.gate{position:fixed;inset:0;background:#006B3F;display:flex;align-items:center;justify-content:center;z-index:999;padding:16px}
+.gate-card{background:#fff;border-radius:14px;max-width:360px;width:100%;padding:26px 22px;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+.gate-card h2{margin:0 0 4px;font-size:20px;color:#006B3F}
+.gate-card p{margin:0 0 14px;font-size:13px;color:#555}
+.gate-card label{display:block;font-size:12px;font-weight:600;margin:10px 0 4px;color:#333}
+.gate-card input{width:100%;box-sizing:border-box;padding:11px;font-size:16px;border:1.5px solid #ccd;border-radius:8px}
+.gate-card input.pin{letter-spacing:8px;text-align:center;font-size:22px}
+.gate-btn{width:100%;margin-top:16px;padding:12px;border:0;border-radius:8px;background:#006B3F;color:#fff;font-size:15px;font-weight:700;cursor:pointer}
+.gate-link{display:block;text-align:center;margin-top:12px;font-size:13px;color:#006B3F;cursor:pointer;text-decoration:underline;background:none;border:0;width:100%}
+.gate-msg{margin-top:10px;font-size:13px;min-height:18px;color:#B02020}
+.gate-msg.ok{color:#1A7A45}
 </style>
 </head>
 <body>
+
+<div class="gate" id="gate" style="display:none">
+  <div class="gate-card">
+    <h2 id="g-title">Sign in</h2>
+    <p id="g-sub">SJANT ICP Clinical Currency Dashboard</p>
+    <div id="g-login">
+      <label>Employee ID</label><input id="g-id" inputmode="text" autocomplete="username" placeholder="e.g. 3801">
+      <label>4-digit PIN</label><input id="g-pin" class="pin" type="password" inputmode="numeric" maxlength="4" autocomplete="current-password" placeholder="••••">
+      <button class="gate-btn" onclick="doLogin()">Sign in</button>
+      <button class="gate-link" onclick="gateMode('reset')">Set up my PIN / I forgot my PIN</button>
+    </div>
+    <div id="g-reset" style="display:none">
+      <label>Employee ID</label><input id="g-rid" placeholder="e.g. 3801">
+      <button class="gate-btn" onclick="doRequestCode()">Email me a code</button>
+      <div id="g-codebox" style="display:none">
+        <label>6-digit code from your email</label><input id="g-code" inputmode="numeric" maxlength="6">
+        <label>Choose a 4-digit PIN</label><input id="g-new" class="pin" type="password" inputmode="numeric" maxlength="4">
+        <label>Repeat PIN</label><input id="g-new2" class="pin" type="password" inputmode="numeric" maxlength="4">
+        <button class="gate-btn" onclick="doSetPin()">Save PIN</button>
+      </div>
+      <button class="gate-link" onclick="gateMode('login')">Back to sign in</button>
+    </div>
+    <div class="gate-msg" id="g-msg"></div>
+  </div>
+</div>
 
 <!-- Top bar -->
 <header class="topbar">
@@ -368,6 +405,7 @@ body{font-family:var(--font);min-height:100vh}
     <div class="live-dot" id="live-dot" style="display:none"></div>
     <span class="refresh-info" id="refresh-info">Auto-refreshes every 5 min</span>
     <button class="refresh-btn" onclick="loadData(true)">⟳ Refresh</button>
+    <button class="refresh-btn" id="signout-btn" style="display:none" onclick="signOut()">🔒 Sign out</button>
   </div>
 </header>
 
@@ -420,13 +458,18 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzbRS9MG5xshgJFx2bMg
 const CURRENCY_DAYS = 90;
 const WARN_DAYS     = 10;
 
-const ICPS   = [{"name": "Walsh, Amelia", "emp": "3801"}, {"name": "Kick, Andrew", "emp": "3802"}, {"name": "Brown, Brad", "emp": "3803"}, {"name": "Bromley, Dan", "emp": "3804"}, {"name": "Robertson, Dan", "emp": "3805"}, {"name": "Rowland, James", "emp": "3806"}, {"name": "Squire, Kelsey", "emp": "3807"}, {"name": "Bigwood, Nick", "emp": "3808"}, {"name": "Pulleine, Paul", "emp": "3809"}, {"name": "Wood, Tony", "emp": "3810"}, {"name": "Purse, Warren", "emp": "3811"}, {"name": "O'Toole, Dave", "emp": "3812"}, {"name": "Ferguson, Mark", "emp": "3813"}, {"name": "McKay, Mick", "emp": "3814"}, {"name": "Reeves, Paul", "emp": "3815"}];
-const SKILLS = [{"key": "RSI", "label": "Rapid Sequence Intubation", "icon": "\ud83d\udc89", "color": "#B45309"}, {"key": "ETT", "label": "Endotracheal Intubation", "icon": "\ud83d\udd2c", "color": "#6D28D9"}, {"key": "SGA", "label": "Supraglottic Airway", "icon": "\ud83d\ude2e", "color": "#0E7490"}, {"key": "BVM", "label": "Bag-Valve-Mask", "icon": "\ud83e\udec1", "color": "#8B0000"}, {"key": "FT", "label": "Finger Thoracostomy", "icon": "\u2702\ufe0f", "color": "#166534"}, {"key": "FONA", "label": "Front of Neck Airway", "icon": "\ud83e\ude7a", "color": "#C05621"}, {"key": "IVIG", "label": "IV / IO Access", "icon": "\ud83e\ude78", "color": "#0891B2"}, {"key": "Blood", "label": "Blood / TXA / Haemostatics", "icon": "\ud83d\udd34", "color": "#991B1B"}, {"key": "Other", "label": "Other Endorsed Skill", "icon": "\u2b50", "color": "#374151"}];
+const ICPS   = [{"name": "Walsh, Amelia", "emp": "3801"}, {"name": "Kick, Andrew", "emp": "3802"}, {"name": "Brown, Brad", "emp": "3803"}, {"name": "Bromley, Dan", "emp": "3804"}, {"name": "Robertson, Dan", "emp": "3805"}, {"name": "Rowland, James", "emp": "3806"}, {"name": "Squire, Kelsey", "emp": "3807"}, {"name": "Bigwood, Nick", "emp": "3808"}, {"name": "O'Toole, Dave", "emp": "3812"}, {"name": "Reeves, Paul", "emp": "3815"}, {"name": "Houben, Justin", "emp": "3816"}, {"name": "Everingham, Josh", "emp": "3817"}, {"name": "Muir, Rebecca", "emp": "3818"}, {"name": "O'Gallagher, Fergus", "emp": "3819"}, {"name": "Clarke, David", "emp": "3820"}, {"name": "Denmeade, Dylan", "emp": "3821"}];
+const SKILLS = [{"key": "RSI", "label": "Rapid Sequence Intubation", "icon": "\ud83d\udc89", "color": "#B45309"}, {"key": "ETT", "label": "Endotracheal Intubation", "icon": "\ud83d\udd2c", "color": "#6D28D9"}, {"key": "SGA", "label": "Supraglottic Airway", "icon": "\ud83d\ude2e", "color": "#0E7490"}, {"key": "BVM", "label": "Bag-Valve-Mask", "icon": "\ud83e\udec1", "color": "#8B0000"}, {"key": "FT", "label": "Finger Thoracostomy", "icon": "\u2702\ufe0f", "color": "#166534"}, {"key": "FONA", "label": "Front of Neck Airway", "icon": "\ud83e\ude7a", "color": "#C05621"}, {"key": "IVIO", "label": "IV / IO Access", "icon": "\ud83e\ude78", "color": "#0891B2"}, {"key": "Blood", "label": "Blood / TXA / Haemostatics", "icon": "\ud83d\udd34", "color": "#991B1B"}, {"key": "Other", "label": "Other Endorsed Skill", "icon": "\u2b50", "color": "#374151"}];
 
 // ── State ─────────────────────────────────────────────────────
 let DATA         = [];    // all entries from Google Sheets
 let ACTIVE_SKILLS = SKILLS.filter(s => s.key !== 'Other'); // skills counted in currency %
-let ACTIVE_ICPS   = ICPS;  // staff list (updated from config)
+let MILESTONES = [
+  {key:'REFL', label:'W, SW, NW Reflections', icon:'📄', color:'#0E7490', target:5},
+  {key:'SMR',  label:'Structured Mentor Reports', icon:'📖', color:'#6D28D9', target:3}
+];
+let ACTIVE_ICPS   = ICPS;
+let ALL_STAFF     = ICPS;  // staff list (updated from config)
 let currentView  = 'org';
 let currentICP   = null;
 let refreshTimer  = null;
@@ -513,6 +556,71 @@ function barColor(days){
   return 'var(--curr)';
 }
 
+
+// ═══════════════════════════════════════════════════════════════
+// PIN SIGN-IN
+// ═══════════════════════════════════════════════════════════════
+let SESSION = null;   // {token, role, id, name}
+function sessGet(){ try{ return JSON.parse(sessionStorage.getItem('icp_sess')||'null'); }catch(e){ return null; } }
+function sessSet(v){ try{ v?sessionStorage.setItem('icp_sess',JSON.stringify(v)):sessionStorage.removeItem('icp_sess'); }catch(e){} }
+function gmsg(t,ok){ const m=document.getElementById('g-msg'); m.textContent=t||''; m.className='gate-msg'+(ok?' ok':''); }
+function gateMode(m){
+  document.getElementById('g-login').style.display=m==='login'?'':'none';
+  document.getElementById('g-reset').style.display=m==='reset'?'':'none';
+  document.getElementById('g-title').textContent=m==='login'?'Sign in':'Set up / reset PIN';
+  gmsg('');
+}
+function showGate(){ document.getElementById('gate').style.display='flex'; document.getElementById('signout-btn').style.display='none'; gateMode('login'); }
+async function api(params){
+  const r=await fetch(SCRIPT_URL+'?'+new URLSearchParams({...params,t:Date.now()}));
+  return r.json();
+}
+async function doLogin(){
+  const id=document.getElementById('g-id').value.trim(), pin=document.getElementById('g-pin').value.trim();
+  if(!id||pin.length!==4){ gmsg('Enter your ID and 4-digit PIN'); return; }
+  gmsg('Checking…',true);
+  try{
+    const j=await api({action:'login',id,pin});
+    if(j.status==='success'){
+      SESSION={token:j.token,role:j.role,id:j.id,name:j.name}; sessSet(SESSION);
+      document.getElementById('g-pin').value=''; document.getElementById('gate').style.display='none';
+      loadData(true);
+    } else if(j.status==='nopin'){ document.getElementById('g-rid').value=id; gateMode('reset'); gmsg('No PIN set yet — request a code to create yours.',true); }
+    else gmsg(j.message||'Could not sign in');
+  }catch(e){ gmsg('Connection problem — try again'); }
+}
+async function doRequestCode(){
+  const id=document.getElementById('g-rid').value.trim();
+  if(!id){ gmsg('Enter your ID'); return; }
+  gmsg('Sending…',true);
+  try{
+    const j=await api({action:'requestCode',id});
+    document.getElementById('g-codebox').style.display='';
+    gmsg(j.message||'Code sent — check your email.',true);
+  }catch(e){ gmsg('Connection problem — try again'); }
+}
+async function doSetPin(){
+  const id=document.getElementById('g-rid').value.trim(), code=document.getElementById('g-code').value.trim();
+  const p1=document.getElementById('g-new').value.trim(), p2=document.getElementById('g-new2').value.trim();
+  if(!/^\d{4}$/.test(p1)){ gmsg('PIN must be exactly 4 digits'); return; }
+  if(p1!==p2){ gmsg('PINs do not match'); return; }
+  try{
+    const j=await api({action:'setPin',id,code,pin:p1});
+    if(j.status==='success'){
+      document.getElementById('g-id').value=id; gateMode('login'); gmsg('PIN saved — sign in below.',true);
+      document.getElementById('g-codebox').style.display='none';
+      ['g-code','g-new','g-new2'].forEach(x=>document.getElementById(x).value='');
+    } else gmsg(j.message||'Could not save PIN');
+  }catch(e){ gmsg('Connection problem — try again'); }
+}
+function signOut(){ SESSION=null; sessSet(null); clearTimeout(refreshTimer); DATA=[]; document.getElementById('main').innerHTML=''; showGate(); }
+function applyRole(){
+  const icpOnly = SESSION && SESSION.role!=='ADMIN';
+  document.querySelector('.sidebar').style.display = icpOnly?'none':'';
+  document.getElementById('mobile-select').style.display = icpOnly?'none':'';
+  document.getElementById('signout-btn').style.display='';
+}
+
 // ═══════════════════════════════════════════════════════════════
 // DATA LOADING
 // ═══════════════════════════════════════════════════════════════
@@ -522,25 +630,30 @@ async function loadData(manual=false){
     return;
   }
 
+  SESSION = SESSION || sessGet();
+  if(!SESSION){ showGate(); return; }
   if(manual) showLoading();
 
   try{
     // Fetch config and entries in parallel
     const [cfgResp, entResp] = await Promise.all([
       fetch(`${SCRIPT_URL}?action=getConfig&t=${Date.now()}`),
-      fetch(`${SCRIPT_URL}?action=getEntries&t=${Date.now()}`)
+      fetch(`${SCRIPT_URL}?action=getEntries&token=${encodeURIComponent(SESSION.token)}&t=${Date.now()}`)
     ]);
     const cfgJson = await cfgResp.json();
     const entJson = await entResp.json();
 
+    if(entJson.status === 'auth'){ signOut(); gmsg('Session expired — please sign in again'); return; }
     if(entJson.status !== 'success') throw new Error(entJson.message||'Unknown error');
 
     // Update ACTIVE_SKILLS from config — exclude skills marked inactive
     // 'Other' key excluded from dashboard currency by default unless config says otherwise
     if(cfgJson.status === 'success' && cfgJson.skills && cfgJson.skills.length){
       ACTIVE_SKILLS = cfgJson.skills.filter(s =>
-        s.key !== 'Other'   // Other Skills captured but excluded from currency %
+        s.key !== 'Other' && !(s.target>0)   // Other + milestones are tracked but not counted in currency %
       );
+      const ms = cfgJson.skills.filter(s => s.target>0);
+      if(ms.length) MILESTONES = ms.map(s=>({key:s.key,label:s.label,icon:s.icon,color:s.color,target:s.target}));
     } else {
       // Fallback: use built-in list minus Other
       ACTIVE_SKILLS = SKILLS.filter(s => s.key !== 'Other');
@@ -548,7 +661,8 @@ async function loadData(manual=false){
 
     // Update staff list from config if available
     if(cfgJson.status === 'success' && cfgJson.staff && cfgJson.staff.length){
-      ACTIVE_ICPS = cfgJson.staff.filter(s => !s.paused && s.status !== 'Inactive');
+      ALL_STAFF   = cfgJson.staff.filter(s => s.status !== 'Inactive');
+      ACTIVE_ICPS = ALL_STAFF.filter(s => !s.paused);
     } else {
       ACTIVE_ICPS = ICPS;
     }
@@ -565,6 +679,7 @@ async function loadData(manual=false){
       competency: String(e['Competency']||'').trim(),
       supervisor: String(e['Supervisor / Educator']||'').trim(),
       notes:      String(e['Notes']||'').trim(),
+      caseDetails:String(e['Case Details']||'').trim(),
     }));
 
     document.getElementById('live-dot').style.display='block';
@@ -573,7 +688,9 @@ async function loadData(manual=false){
       'Updated ' + new Date().toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});
 
     buildSidebar();
-    if(currentView==='org') showOrg();
+    applyRole();
+    if(SESSION.role!=='ADMIN'){ showICP(SESSION.id); }
+    else if(currentView==='org') showOrg();
     else if(currentICP) showICP(currentICP);
 
     // Schedule next auto-refresh (5 minutes)
@@ -583,6 +700,42 @@ async function loadData(manual=false){
   }catch(err){
     showErrorState(err.message);
   }
+}
+
+
+// ── Training milestones (one-off items, not part of currency %) ──
+function msCount(emp,key){
+  return DATA.filter(e=>e.empId===emp && e.skill===key && e.competency.toLowerCase()==='yes').length;
+}
+function msBar(n,t,color){
+  const pct=Math.min(100,Math.round(n/t*100)), done=n>=t;
+  return `<div style="display:flex;align-items:center;gap:8px;min-width:140px">
+    <div style="flex:1;height:8px;background:var(--rule);border-radius:4px;overflow:hidden">
+      <div style="width:${pct}%;height:8px;background:${done?'var(--curr)':color};border-radius:4px"></div></div>
+    <span style="font-family:var(--mono);font-size:11px;font-weight:700;white-space:nowrap">${done?'✓ ':''}${n}/${t}</span></div>`;
+}
+function milestoneOrgCard(){
+  const rows=ACTIVE_ICPS.map((icp,i)=>{
+    const bg=i%2===0?'white':'var(--bg)';
+    return `<tr onclick="showICP('${icp.emp}')" style="background:${bg}">
+      <td style="background:${bg};font-weight:600;font-size:12px">${icp.name}</td>
+      ${MILESTONES.map(m=>`<td style="background:${bg}">${msBar(msCount(icp.emp,m.key),m.target,m.color)}</td>`).join('')}</tr>`;
+  }).join('');
+  const tot=MILESTONES.map(m=>{const d=ACTIVE_ICPS.filter(i=>msCount(i.emp,m.key)>=m.target).length;return `${m.icon} ${d}/${ACTIVE_ICPS.length} complete`;}).join(' · ');
+  return `<div class="card">
+    <div class="card-hd" style="background:var(--g)"><span class="card-hd-icon">🎓</span>
+      <div><h2>Training Milestones</h2><p>One-off requirements, not part of currency % · ${tot}</p></div></div>
+    <div class="icp-table-wrap"><table class="icp-table"><thead><tr><th>Clinician</th>
+      ${MILESTONES.map(m=>`<th>${m.icon} ${m.label} (${m.target})</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
+function milestoneICPCard(emp){
+  return `<div class="card" style="margin-bottom:14px"><div class="card-hd" style="background:var(--g)"><span class="card-hd-icon">🎓</span>
+    <div><h2>Training Milestones</h2><p>One-off requirements</p></div></div>
+    <div class="card-body">${MILESTONES.map(m=>{
+      const ents=DATA.filter(e=>e.empId===emp&&e.skill===m.key).sort((a,b)=>b.date.localeCompare(a.date));
+      return `<div style="margin-bottom:12px"><div style="font-weight:700;font-size:13px;margin-bottom:5px">${m.icon} ${m.label}</div>
+        ${msBar(msCount(emp,m.key),m.target,m.color)}
+        ${ents.map(e=>`<div style="font-size:11px;color:var(--muted);margin-top:3px">${fmtDate(e.date)} — ${e.skillType||''}${e.supervisor?' · '+e.supervisor:''}</div>`).join('')}</div>`;}).join('')}</div></div>`;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -598,11 +751,14 @@ function buildSidebar(){
       <div class="icp-avatar" style="background:${col}">${initials(icp.name)}</div>
       <div>
         <div class="icp-name">${icp.name}</div>
-        <div class="icp-base-lbl">Darwin Station</div>
+        <div class="icp-base-lbl">${icp.base||""}</div>
       </div>
       <div class="icp-status-dot" style="background:${statusColor(os)}"></div>
     </button>`;
   }).join('');
+  const ms=document.getElementById('mobile-select');
+  ms.innerHTML='<option value="org">🏢 Organisation Overview</option><optgroup label="Select a clinician">'+
+    ACTIVE_ICPS.map(i=>`<option value="${i.emp}">${i.name}</option>`).join('')+'</optgroup>';
 }
 
 function onMobileSelect(val){
@@ -762,11 +918,11 @@ function renderOrg(){
             </tr>
           </thead>
           <tbody>
-            ${ICPS.map((icp,i)=>{
+            ${ACTIVE_ICPS.map((icp,i)=>{
               const os = overallStatus(icp.emp);
               const col = avatarColor(icp.name);
               const bg = i%2===0?'white':'var(--bg)';
-              const pips = SKILLS.map(sk=>{
+              const pips = ACTIVE_SKILLS.map(sk=>{
                 const st = skillStatus(icp.emp, sk.key);
                 return `<td style="background:${bg}">
                   <span class="skill-pip ${pipClass(st.status)}">${pipText(st.days)}</span>
@@ -788,7 +944,8 @@ function renderOrg(){
           </tbody>
         </table>
       </div>
-    </div>`;
+    </div>
+    ${milestoneOrgCard()}`;
 
   // Animate ring
   requestAnimationFrame(()=>{
@@ -817,7 +974,7 @@ function showICP(empId){
 }
 
 function renderICP(empId){
-  const icp = ICPS.find(i=>i.emp===empId);
+  const icp = ALL_STAFF.find(i=>i.emp===empId) || ICPS.find(i=>i.emp===empId);
   if(!icp){ showOrg(); return; }
 
   const col = avatarColor(icp.name);
@@ -827,7 +984,7 @@ function renderICP(empId){
 
   // Skill cards with cohort comparison
   // Show ALL skills in detail view (including Other) so Clinical Services can see everything
-  const allSkillsForDetail = SKILLS;
+  const allSkillsForDetail = SKILLS.filter(k=>!MILESTONES.some(m=>m.key===k.key));
   const skillCards = allSkillsForDetail.map(sk=>{
     const st = skillStatus(empId, sk.key);
     const daysStr = st.days===null?'–':st.days<0?`${Math.abs(st.days)}`:String(st.days);
@@ -844,7 +1001,7 @@ function renderICP(empId){
     }).filter(c=>c.days!==null).sort((a,b)=>(b.days||0)-(a.days||0));
     const maxDays = Math.max(...cohort.map(c=>Math.abs(c.days||0)), CURRENCY_DAYS);
 
-    const cohortHTML = cohort.length<2?'':
+    const cohortHTML = (cohort.length<2 || (SESSION && SESSION.role!=='ADMIN'))?'':
       `<div class="cohort-section">
         <div class="cohort-lbl">vs the cohort (${sk.key})</div>
         ${cohort.slice(0,6).map(c=>{
@@ -904,7 +1061,8 @@ function renderICP(empId){
         </div>
       </div>
       <div class="skill-detail-grid">${skillCards}</div>
-    </div>`;
+    </div>
+    ${milestoneICPCard(empId)}`;
 
   requestAnimationFrame(()=>{
     setTimeout(()=>{
@@ -934,7 +1092,7 @@ function showSetupState(){
         <ol>
           <li>Open <code>ICP_Dashboard.html</code> in Notepad</li>
           <li>Press <strong>Ctrl+H</strong> (Find and Replace)</li>
-          <li>Find: <code>PASTE_YOUR_GOOGLE_SCRIPT_URL_HERE</code></li>
+          <li>Find: <code>https://script.google.com/macros/s/AKfycbzbRS9MG5xshgJFx2bMg9qXYJ0OkYzRReOW0txwLFChYhWug5S0vv45BrQ7b5-gyvwq6Q/exec</code></li>
           <li>Replace with your Google Apps Script URL</li>
           <li>Click <strong>Replace All</strong>, then save</li>
         </ol>
