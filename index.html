@@ -363,6 +363,27 @@ body{font-family:var(--font);min-height:100vh}
 .gate-link{display:block;text-align:center;margin-top:12px;font-size:13px;color:#006B3F;cursor:pointer;text-decoration:underline;background:none;border:0;width:100%}
 .gate-msg{margin-top:10px;font-size:13px;min-height:18px;color:#B02020}
 .gate-msg.ok{color:#1A7A45}
+
+.rp-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px}
+.rp-bar label{font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:3px}
+.rp-bar select,.rp-bar input{padding:8px;border:1.5px solid var(--rule);border-radius:8px;font-size:13px}
+.rp-page{background:#fff;border-radius:12px;padding:24px;box-shadow:0 1px 6px rgba(0,0,0,.08)}
+.rp-page h1{margin:0;font-size:20px;color:var(--g)} .rp-page h3{margin:20px 0 8px;font-size:14px;color:var(--g);border-bottom:2px solid var(--g);padding-bottom:4px}
+.rp-kpis{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+.rp-kpi{flex:1;min-width:130px;border:1px solid var(--rule);border-radius:10px;padding:10px 12px}
+.rp-kpi b{display:block;font-size:24px;color:var(--g)} .rp-kpi span{font-size:11px;color:var(--muted)}
+.rp-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.rp-tbl th{background:var(--g);color:#fff;text-align:left;padding:6px 8px;font-weight:600}
+.rp-tbl td{padding:6px 8px;border-bottom:1px solid var(--rule)}
+.rp-tbl td.n,.rp-tbl th.n{text-align:center}
+.rp-z{color:#1A7A45;background:#D4EDDA}.rp-w{background:#FFF3CD;color:#856404}.rp-b{background:#F8D7DA;color:#B02020}
+.rp-note{font-size:11px;color:var(--muted);line-height:1.5}
+@media print{
+  .topbar,.sidebar,.mobile-icp-select,.update-bar,.no-print,.back-btn{display:none!important}
+  body{background:#fff} .main{margin:0!important;padding:0!important;width:100%!important}
+  .rp-page{box-shadow:none;padding:0} .rp-tbl th{background:#006B3F!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .rp-z,.rp-w,.rp-b{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
 </style>
 </head>
 <body>
@@ -404,6 +425,7 @@ body{font-family:var(--font);min-height:100vh}
   <div class="topbar-right">
     <div class="live-dot" id="live-dot" style="display:none"></div>
     <span class="refresh-info" id="refresh-info">Auto-refreshes every 5 min</span>
+    <button class="refresh-btn" id="report-btn" style="display:none" onclick="showReport()">📑 Run report</button>
     <button class="refresh-btn" onclick="loadData(true)">⟳ Refresh</button>
     <button class="refresh-btn" id="signout-btn" style="display:none" onclick="signOut()">🔒 Sign out</button>
   </div>
@@ -453,7 +475,7 @@ body{font-family:var(--font);min-height:100vh}
 // ═══════════════════════════════════════════════════════════════
 // CONFIG — paste your Google Apps Script URL here
 // ═══════════════════════════════════════════════════════════════
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzbRS9MG5xshgJFx2bMg9qXYJ0OkYzRReOW0txwLFChYhWug5S0vv45BrQ7b5-gyvwq6Q/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzbRS9MG5xshgJFx2bMg9qXYJ0OkYzRReOW0txwLFChYhWug5S0vv45BrQ7b5-gyvwq6Q/exec_GOOGLE_SCRIPT_URL_HERE';
 
 const CURRENCY_DAYS = 90;
 const WARN_DAYS     = 10;
@@ -464,6 +486,8 @@ const SKILLS = [{"key": "RSI", "label": "Rapid Sequence Intubation", "icon": "\u
 // ── State ─────────────────────────────────────────────────────
 let DATA         = [];    // all entries from Google Sheets
 let ACTIVE_SKILLS = SKILLS.filter(s => s.key !== 'Other'); // skills counted in currency %
+let CFG_ORG = '';
+let REPORT_BASELINE = '2026-10-01';   // ICP_Config → report_baseline overrides
 let MILESTONES = [
   {key:'REFL', label:'W, SW, NW Reflections', icon:'📄', color:'#0E7490', target:5},
   {key:'SMR',  label:'Structured Mentor Reports', icon:'📖', color:'#6D28D9', target:3}
@@ -619,6 +643,7 @@ function applyRole(){
   document.querySelector('.sidebar').style.display = icpOnly?'none':'';
   document.getElementById('mobile-select').style.display = icpOnly?'none':'';
   document.getElementById('signout-btn').style.display='';
+  document.getElementById('report-btn').style.display = icpOnly?'none':'';
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -652,6 +677,8 @@ async function loadData(manual=false){
       ACTIVE_SKILLS = cfgJson.skills.filter(s =>
         s.key !== 'Other' && !(s.target>0)   // Other + milestones are tracked but not counted in currency %
       );
+      if(cfgJson.config && cfgJson.config.org_name) CFG_ORG = cfgJson.config.org_name;
+      if(cfgJson.config && cfgJson.config.report_baseline) REPORT_BASELINE = String(cfgJson.config.report_baseline).slice(0,10);
       const ms = cfgJson.skills.filter(s => s.target>0);
       if(ms.length) MILESTONES = ms.map(s=>({key:s.key,label:s.label,icon:s.icon,color:s.color,target:s.target}));
     } else {
@@ -736,6 +763,210 @@ function milestoneICPCard(emp){
       return `<div style="margin-bottom:12px"><div style="font-weight:700;font-size:13px;margin-bottom:5px">${m.icon} ${m.label}</div>
         ${msBar(msCount(emp,m.key),m.target,m.color)}
         ${ents.map(e=>`<div style="font-size:11px;color:var(--muted);margin-top:3px">${fmtDate(e.date)} — ${e.skillType||''}${e.supervisor?' · '+e.supervisor:''}</div>`).join('')}</div>`;}).join('')}</div></div>`;
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// QUARTERLY COMPLIANCE REPORT  (leadership only)
+// ═══════════════════════════════════════════════════════════════
+// Rules (printed at the foot of every report):
+//  • Every clinician is treated as current in every skill on the baseline date
+//    (ICP_Config → report_baseline, default 1 Oct 2026), or on their Endorsement Date if later.
+//  • A competent entry keeps a skill current for 90 days; the skill is uncurrent from the day AFTER day 90.
+//  • Only entries marked Competency = Yes count. Paused days are excluded; Inactive staff are not shown.
+function dnum(s){ const m=String(s||'').match(/(\d{4})-(\d{2})-(\d{2})/); return m?Math.round(Date.UTC(+m[1],+m[2]-1,+m[3])/864e5):null; }
+function fmtN(n){ return new Date(n*864e5).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}); }
+function dstrN(n){ return new Date(n*864e5).toISOString().slice(0,10); }
+function todayN(){ const d=new Date(); return Math.round(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5); }
+
+function quarterList(){
+  const b=new Date(dnum(REPORT_BASELINE)*864e5), out=[];
+  let y=b.getUTCFullYear(), q=Math.floor(b.getUTCMonth()/3);
+  const t=todayN();
+  for(;;){
+    const from=Math.round(Date.UTC(y,q*3,1)/864e5), to=Math.round(Date.UTC(y,q*3+3,0)/864e5);
+    if(from>t && out.length) break;
+    out.push({label:`${['Jan–Mar','Apr–Jun','Jul–Sep','Oct–Dec'][q]} ${y}`,from,to});
+    q++; if(q>3){q=0;y++;}
+    if(out.length>40) break;
+  }
+  return out.reverse();
+}
+
+function computeReport(fromN,toN){
+  const base=dnum(REPORT_BASELINE), end=Math.min(toN,todayN());
+  const D=CURRENCY_DAYS, clin=[], skip=[];
+  ALL_STAFF.forEach(st=>{
+    const pF=dnum(st.pausedFrom), pT=dnum(st.pausedTo);
+    if(st.paused && !pF){ skip.push(st); return; }          // paused, no dates given → left out
+    let start=base; const en=dnum(st.endorsed); if(en && en>start) start=en;
+    const isPaused=t=>pF!==null && t>=pF && (pT===null||t<=pT);
+    const rec={st,sk:{},tot:0,lapses:0,elig:0,cur:0,endStatus:{},eligibleAtEnd:false};
+    ACTIVE_SKILLS.forEach(sk=>{
+      const dates=DATA.filter(e=>e.empId===st.emp&&e.skill===sk.key&&e.competency.toLowerCase()==='yes')
+        .map(e=>dnum(e.date)).filter(x=>x!==null);
+      dates.push(start); dates.sort((a,b)=>a-b);
+      let elig=0,cur=0,lap=0,prev=null,p=0,latest=null;
+      for(let t=start;t<=end;t++){
+        while(p<dates.length&&dates[p]<=t){latest=dates[p];p++;}
+        const covered=latest!==null&&(t-latest)<=D;
+        if(t>=fromN && !isPaused(t)){
+          elig++; if(covered)cur++;
+          if(!covered&&prev===true) lap++;
+        }
+        if(t===end) rec.endStatus[sk.key]=isPaused(t)?'paused':(covered?'current':'uncurrent');
+        if(!isPaused(t)) prev=covered;
+      }
+      rec.sk[sk.key]={elig,cur,unc:elig-cur,lapses:lap};
+      rec.tot+=elig-cur; rec.lapses+=lap; rec.elig+=elig; rec.cur+=cur;
+    });
+    rec.eligibleAtEnd=start<=end && ACTIVE_SKILLS.every(s=>rec.endStatus[s.key]==='current');
+    clin.push(rec);
+  });
+  return {clin,skip,end,from:fromN};
+}
+
+function showReport(){
+  currentView='report'; currentICP=null;
+  document.getElementById('org-btn').classList.remove('active');
+  document.querySelectorAll('.icp-btn').forEach(b=>b.classList.remove('active'));
+  const qs=quarterList();
+  window._qs=qs;
+  document.getElementById('main').innerHTML=`
+    <div class="rp-bar no-print">
+      <div><label>Period</label><select id="rp-q" onchange="rpQuarter()">
+        ${qs.map((q,i)=>`<option value="${i}">${q.label}</option>`).join('')}<option value="x">Custom dates…</option></select></div>
+      <div><label>From</label><input type="date" id="rp-from"></div>
+      <div><label>To</label><input type="date" id="rp-to"></div>
+      <button class="refresh-btn" style="background:var(--g)" onclick="runReport()">📑 Run report</button>
+      <button class="refresh-btn" style="background:var(--ink2)" onclick="window.print()">🖨 Print / Save as PDF</button>
+    </div>
+    <div id="rp-out"></div>`;
+  rpQuarter(); runReport();
+}
+function rpQuarter(){
+  const v=document.getElementById('rp-q').value; if(v==='x') return;
+  const q=window._qs[+v]; document.getElementById('rp-from').value=dstrN(q.from); document.getElementById('rp-to').value=dstrN(q.to);
+}
+function runReport(){
+  const f=dnum(document.getElementById('rp-from').value), t=dnum(document.getElementById('rp-to').value);
+  if(f===null||t===null||t<f){ document.getElementById('rp-out').innerHTML='<p>Please choose a valid period.</p>'; return; }
+  const R=computeReport(f,t), C=R.clin;
+  const cls=n=>n===0?'rp-z':(n<=7?'rp-w':'rp-b');
+  const eligC=C.filter(c=>c.elig>0);
+  const E=eligC.reduce((a,c)=>a+c.elig,0), K=eligC.reduce((a,c)=>a+c.cur,0);
+  const rate=E?Math.round(K/E*100):0;
+  const fullNow=C.filter(c=>c.eligibleAtEnd).length, nEnd=C.filter(c=>Object.values(c.endStatus).some(s=>s&&s!=='paused')).length;
+  const totalUnc=eligC.reduce((a,c)=>a+c.tot,0), totalLap=eligC.reduce((a,c)=>a+c.lapses,0);
+  const perSkill=ACTIVE_SKILLS.map(s=>{
+    const rows=C.filter(c=>c.endStatus[s.key]&&c.endStatus[s.key]!=='paused');
+    const cur=rows.filter(c=>c.endStatus[s.key]==='current').length;
+    const unc=C.reduce((a,c)=>a+(c.sk[s.key]?c.sk[s.key].unc:0),0), lap=C.reduce((a,c)=>a+(c.sk[s.key]?c.sk[s.key].lapses:0),0);
+    return {s,n:rows.length,cur,pct:rows.length?Math.round(cur/rows.length*100):0,unc,lap,avg:rows.length?(unc/rows.length):0};
+  });
+  const weakest=[...perSkill].filter(x=>x.n).sort((a,b)=>a.pct-b.pct)[0];
+  const mostUnc=[...perSkill].sort((a,b)=>b.unc-a.unc)[0];
+  const sorted=[...C].sort((a,b)=>b.tot-a.tot||a.st.name.localeCompare(b.st.name));
+  const msDone=MILESTONES.map(m=>{const d=C.filter(c=>DATA.filter(e=>e.empId===c.st.emp&&e.skill===m.key&&e.competency.toLowerCase()==='yes'&&dnum(e.date)<=R.end).length>=m.target).length;return `${m.label}: ${d} of ${C.length} complete`;});
+  const days=R.end-R.from+1;
+  const summary=[
+    `Across ${fmtN(R.from)} to ${fmtN(R.end)} (${days} days), ${rate}% of clinician skill-days were current.`,
+    `On ${fmtN(R.end)}, ${fullNow} of ${nEnd} clinicians were current in every skill.`,
+    `There were ${totalLap} new lapse${totalLap===1?'':'s'} in the period, totalling ${totalUnc} uncurrent skill-days.`,
+    weakest?`${weakest.s.label} had the lowest currency at period end (${weakest.pct}%).`:'',
+    mostUnc&&mostUnc.unc>0?`${mostUnc.s.label} accounted for the most uncurrent days (${mostUnc.unc}).`:''
+  ].filter(Boolean);
+  document.getElementById('rp-out').innerHTML=`<div class="rp-page">
+    <h1>Clinical Currency Compliance Report</h1>
+    <div class="rp-note">${(CFG_ORG||'St John Ambulance Northern Territory')} · ICP Programme · Period ${fmtN(R.from)} – ${fmtN(R.end)} · Generated ${fmtN(todayN())}</div>
+    <div class="rp-kpis">
+      <div class="rp-kpi"><b>${rate}%</b><span>of skill-days current</span></div>
+      <div class="rp-kpi"><b>${fullNow}/${nEnd}</b><span>clinicians fully current at ${fmtN(R.end)}</span></div>
+      <div class="rp-kpi"><b>${totalUnc}</b><span>uncurrent skill-days</span></div>
+      <div class="rp-kpi"><b>${totalLap}</b><span>new lapses</span></div></div>
+    <h3>Summary</h3><ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.6">${summary.map(x=>`<li>${x}</li>`).join('')}</ul>
+    <h3>By skill</h3>
+    <table class="rp-tbl"><thead><tr><th>Skill</th><th class="n">Clinicians</th><th class="n">Current at end</th><th class="n">% current</th><th class="n">New lapses</th><th class="n">Uncurrent days</th><th class="n">Avg days / clinician</th></tr></thead><tbody>
+    ${perSkill.map(x=>`<tr><td>${x.s.icon||''} ${x.s.label}</td><td class="n">${x.n}</td><td class="n">${x.cur}</td><td class="n ${x.pct>=80?'rp-z':x.pct>=50?'rp-w':'rp-b'}">${x.pct}%</td><td class="n">${x.lap}</td><td class="n">${x.unc}</td><td class="n">${x.avg.toFixed(1)}</td></tr>`).join('')}</tbody></table>
+    <h3>By clinician — days uncurrent in the period</h3>
+    <table class="rp-tbl"><thead><tr><th>Clinician</th>${ACTIVE_SKILLS.map(s=>`<th class="n">${s.key}</th>`).join('')}<th class="n">Total</th><th class="n">Lapses</th><th class="n">Now</th></tr></thead><tbody>
+    ${sorted.map(c=>`<tr><td>${c.st.name}</td>${ACTIVE_SKILLS.map(s=>{const v=c.sk[s.key]?c.sk[s.key].unc:0;return `<td class="n ${cls(v)}">${v}</td>`;}).join('')}<td class="n"><b>${c.tot}</b></td><td class="n">${c.lapses}</td><td class="n">${c.eligibleAtEnd?'✓ Current':(Object.values(c.endStatus).includes('uncurrent')?'Uncurrent':'–')}</td></tr>`).join('')}</tbody></table>
+    <h3>Training milestones (to ${fmtN(R.end)})</h3><div style="font-size:13px">${msDone.join('<br>')}</div>
+    <h3>Basis of calculation</h3><div class="rp-note">
+      Baseline ${fmtN(dnum(REPORT_BASELINE))}: every clinician is treated as current in every skill on that date (or on their Endorsement Date, if later). A competent entry keeps a skill current for ${CURRENCY_DAYS} days; the skill is counted as uncurrent from the day after. Only entries marked Competency = Yes count. Paused days are excluded. Inactive staff are not shown.
+      ${R.skip.length?`<br>Left out (paused with no pause dates): ${R.skip.map(s=>s.name).join('; ')}.`:''}
+      Other Skills and training milestones are not included in currency figures.</div></div>`;
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// CLINICIAN CPD / REGISTRATION SUMMARY
+// ═══════════════════════════════════════════════════════════════
+function esc(t){ return String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function showCPD(empId){
+  currentView='cpd'; currentICP=empId;
+  const t=todayN();
+  document.getElementById('main').innerHTML=`
+    <button class="back-btn no-print" onclick="showICP('${empId}')">← Back</button>
+    <div class="rp-bar no-print">
+      <div><label>From</label><input type="date" id="cp-from" value="${dstrN(t-364)}"></div>
+      <div><label>To</label><input type="date" id="cp-to" value="${dstrN(t)}"></div>
+      <div><label>&nbsp;</label><label style="display:flex;gap:6px;align-items:center;font-weight:400;color:var(--ink)">
+        <input type="checkbox" id="cp-notes"> Include my notes and case details</label></div>
+      <button class="refresh-btn" style="background:var(--g)" onclick="runCPD('${empId}')">Update</button>
+      <button class="refresh-btn" style="background:var(--ink2)" onclick="window.print()">🖨 Print / Save as PDF</button>
+    </div>
+    <div class="rp-note no-print" style="margin-bottom:10px">Tip: use the dates of your registration period. If you include notes or case details, check they contain nothing that could identify a patient before you share the summary.</div>
+    <div id="cp-out"></div>`;
+  runCPD(empId);
+}
+function runCPD(empId){
+  const f=dnum(document.getElementById('cp-from').value), t=dnum(document.getElementById('cp-to').value);
+  const out=document.getElementById('cp-out');
+  if(f===null||t===null||t<f){ out.innerHTML='<p>Please choose a valid date range.</p>'; return; }
+  const withNotes=document.getElementById('cp-notes').checked;
+  const st=ALL_STAFF.find(i=>i.emp===empId)||ICPS.find(i=>i.emp===empId)||{name:empId,emp:empId};
+  const mine=DATA.filter(e=>e.empId===empId);
+  const inRange=mine.filter(e=>{const d=dnum(e.date);return d!==null&&d>=f&&d<=t;}).sort((a,b)=>a.date.localeCompare(b.date));
+  const isMs=k=>MILESTONES.some(m=>m.key===k);
+  const skillRows=SKILLS.filter(k=>!isMs(k.key)).map(sk=>{
+    const ents=inRange.filter(e=>e.skill===sk.key);
+    const comp=ents.filter(e=>e.competency.toLowerCase()==='yes');
+    const real=ents.filter(e=>e.setting==='Real Patient').length, sim=ents.filter(e=>e.setting==='Simulation').length;
+    const allComp=mine.filter(e=>e.skill===sk.key&&e.competency.toLowerCase()==='yes'&&dnum(e.date)!==null&&dnum(e.date)<=t).map(e=>dnum(e.date)).sort((a,b)=>b-a);
+    let status='–';
+    if(sk.key!=='Other'){
+      if(!allComp.length) status='No competent entry';
+      else { const exp=allComp[0]+CURRENCY_DAYS; status=(exp>=t?'Current to ':'Lapsed on ')+fmtN(exp); }
+    }
+    return {sk,n:ents.length,comp:comp.length,real,sim,last:allComp[0]?fmtN(allComp[0]):'–',status};
+  });
+  const totalN=skillRows.reduce((a,r)=>a+r.n,0);
+  const msBlocks=MILESTONES.map(m=>{
+    const ents=inRange.filter(e=>e.skill===m.key);
+    return `<div style="margin-bottom:8px"><b>${m.icon} ${esc(m.label)}</b>: ${ents.length} completed in this period${ents.length?'':' (none)'}
+      ${ents.map(e=>`<div class="rp-note">${fmtN(dnum(e.date))} — ${esc(e.skillType)}${e.supervisor?' · '+esc(e.supervisor):''}</div>`).join('')}</div>`;
+  }).join('');
+  const log=inRange.filter(e=>!isMs(e.skill));
+  const sk=k=>{const x=SKILLS.find(s=>s.key===k);return x?x.label:k;};
+  out.innerHTML=`<div class="rp-page">
+    <h1>Clinical Skills and Currency Summary</h1>
+    <div class="rp-note">Evidence of skills practice for registration and continuing professional development</div>
+    <table class="rp-tbl" style="margin:12px 0"><tbody>
+      <tr><td><b>Clinician</b></td><td>${esc(st.name)}</td><td><b>Employee ID</b></td><td>${esc(empId)}</td></tr>
+      <tr><td><b>Organisation</b></td><td>${esc(CFG_ORG||'St John Ambulance Northern Territory')}</td><td><b>Period</b></td><td>${fmtN(f)} – ${fmtN(t)}</td></tr>
+      <tr><td><b>Programme</b></td><td>Intensive Care Paramedic Programme</td><td><b>Generated</b></td><td>${fmtN(todayN())}</td></tr></tbody></table>
+    <h3>Skills summary</h3>
+    <table class="rp-tbl"><thead><tr><th>Skill</th><th class="n">Entries</th><th class="n">Real patient</th><th class="n">Simulation</th><th class="n">Competent</th><th>Last competent</th><th>Status at ${fmtN(t)}</th></tr></thead><tbody>
+    ${skillRows.map(r=>`<tr><td>${r.sk.icon||''} ${esc(r.sk.label)}</td><td class="n">${r.n}</td><td class="n">${r.real}</td><td class="n">${r.sim}</td><td class="n">${r.comp}</td><td>${r.last}</td><td>${r.status}</td></tr>`).join('')}
+    <tr><td><b>Total</b></td><td class="n"><b>${totalN}</b></td><td class="n"><b>${skillRows.reduce((a,r)=>a+r.real,0)}</b></td><td class="n"><b>${skillRows.reduce((a,r)=>a+r.sim,0)}</b></td><td class="n"><b>${skillRows.reduce((a,r)=>a+r.comp,0)}</b></td><td></td><td></td></tr></tbody></table>
+    <h3>Training milestones</h3>${msBlocks}
+    <h3>Log of entries (${log.length})</h3>
+    ${log.length?`<table class="rp-tbl"><thead><tr><th>Date</th><th>Skill</th><th>Technique</th><th>Setting</th><th>Competency</th><th>Supervisor / educator</th></tr></thead><tbody>
+    ${log.map(e=>`<tr><td>${fmtN(dnum(e.date))}</td><td>${esc(sk(e.skill))}</td><td>${esc(e.skillType)}</td><td>${esc(e.setting)}</td><td>${esc(e.competency)}</td><td>${esc(e.supervisor)}</td></tr>
+      ${withNotes&&(e.notes||e.caseDetails)?`<tr><td></td><td colspan="5" class="rp-note">${e.notes?'<b>Notes:</b> '+esc(e.notes)+' ':''}${e.caseDetails?'<b>Case details:</b> '+esc(e.caseDetails):''}</td></tr>`:''}`).join('')}</tbody></table>`:'<p class="rp-note">No entries logged in this period.</p>'}
+    <h3>About this record</h3><div class="rp-note">
+      Generated from the SJANT ICP Currency Logbook. Entries are recorded by the clinician at the time of the activity and name the supervising or educating clinician. They are self-reported and are not independently verified by this report. A skill is shown as current for ${CURRENCY_DAYS} days after the last entry marked competent. Records start from the date the current logbook went live and may not include earlier activity.</div></div>`;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1046,7 +1277,7 @@ function renderICP(empId){
 
   const main = document.getElementById('main');
   main.innerHTML = `
-    <button class="back-btn" onclick="showOrg()">← Organisation view</button>
+    ${(SESSION&&SESSION.role!=='ADMIN')?'':'<button class="back-btn" onclick="showOrg()">← Organisation view</button>'}
     <div class="card">
       <div class="detail-header">
         <div class="detail-avatar" style="background:${col}">${initials(icp.name)}</div>
@@ -1062,7 +1293,10 @@ function renderICP(empId){
       </div>
       <div class="skill-detail-grid">${skillCards}</div>
     </div>
-    ${milestoneICPCard(empId)}`;
+    ${milestoneICPCard(empId)}
+    <div class="card no-print" style="margin-top:14px"><div class="card-body" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div style="flex:1;min-width:200px"><b>📄 Registration / CPD summary</b><div style="font-size:12px;color:var(--muted)">A printable record of your logged skills for any date range, to use as evidence for registration and CPD.</div></div>
+      <button class="refresh-btn" style="background:var(--g)" onclick="showCPD('${empId}')">Create summary</button></div></div>`;
 
   requestAnimationFrame(()=>{
     setTimeout(()=>{
@@ -1092,7 +1326,7 @@ function showSetupState(){
         <ol>
           <li>Open <code>ICP_Dashboard.html</code> in Notepad</li>
           <li>Press <strong>Ctrl+H</strong> (Find and Replace)</li>
-          <li>Find: <code>https://script.google.com/macros/s/AKfycbzbRS9MG5xshgJFx2bMg9qXYJ0OkYzRReOW0txwLFChYhWug5S0vv45BrQ7b5-gyvwq6Q/exec</code></li>
+          <li>Find: <code>https://script.google.com/macros/s/AKfycbzbRS9MG5xshgJFx2bMg9qXYJ0OkYzRReOW0txwLFChYhWug5S0vv45BrQ7b5-gyvwq6Q/exec_GOOGLE_SCRIPT_URL_HERE</code></li>
           <li>Replace with your Google Apps Script URL</li>
           <li>Click <strong>Replace All</strong>, then save</li>
         </ol>
